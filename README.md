@@ -200,8 +200,8 @@ This project is licensed under the MIT License.
 ## 👤 Author
 
 **Your Name**
-- GitHub: [@your-username](https://github.com/your-username)
-- LinkedIn: [Your Name](https://linkedin.com/in/your-profile)
+- GitHub: [@hilalfnisanci](https://github.com/hilalfnisanci)
+- LinkedIn: [Hilal Nisanci](https://www.linkedin.com/in/hilal-nisanci/)
 
 ## 🙏 Acknowledgments
 
