@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🇹🇷 Turkish RAG System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        input[type="file"],
+        textarea,
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="file"]:focus,
+        textarea:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: Arial;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #764ba2;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.loading {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+        
+        .answer-box {
+            background: white;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .answer-box strong {
+            color: #667eea;
+        }
+        
+        .source {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            padding: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🇹🇷 Turkish RAG System</h1>
+        
+        <!-- UPLOAD SECTION -->
+        <div class="section">
+            <h2>📄 Upload File</h2>
+            <input type="file" id="fileInput" multiple accept=".pdf,.txt">
+            <button onclick="uploadFiles()">Upload</button>
+            <div id="uploadStatus"></div>
+        </div>
+        
+        <!-- QUERY SECTION -->
+        <div class="section">
+            <h2>🔍 Ask Question</h2>
+            <textarea id="queryInput" placeholder="Enter your question in Turkish..."></textarea>
+            <button onclick="askQuestion()">Ask Question</button>
+            <div id="queryStatus"></div>
+        </div>
+        
+        <!-- ANSWER SECTION -->
+        <div id="answerSection" style="display:none;">
+            <div class="section">
+                <h2>💡 Answer</h2>
+                <div id="answerBox" class="answer-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        async function uploadFiles() {
+            const files = document.getElementById('fileInput').files;
+            if (files.length === 0) {
+                alert('Lütfen dosya seç');
+                return;
+            }
+            
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('files', file);
+            }
+            
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.innerHTML = '<div class="status loading"><span class="spinner"></span>Yükleniyor...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    statusDiv.innerHTML = `<div class="status success">✅ ${data.files_processed} dosya yüklendi</div>`;
+                } else {
+                    statusDiv.innerHTML = `<div class="status error">❌ Hata: ${data.message || 'Bilinmeyen hata'}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Hata: ${error.message}</div>`;
+            }
+        }
+        
+        async function askQuestion() {
+            const query = document.getElementById('queryInput').value;
+            if (!query.trim()) {
+                alert('Lütfen soru yaz');
+                return;
+            }
+            
+            const statusDiv = document.getElementById('queryStatus');
+            statusDiv.innerHTML = '<div class="status loading"><span class="spinner"></span>Düşünüyorum...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/ask?query=${encodeURIComponent(query)}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.answer) {
+                    statusDiv.innerHTML = '';
+                    document.getElementById('answerSection').style.display = 'block';
+                    
+                    let html = `<p>${data.answer}</p>`;
+                    
+                    if (data.sources && data.sources.length > 0) {
+                        html += '<div class="source"><strong>Kaynaklar:</strong>';
+                        data.sources.forEach((source, idx) => {
+                            html += `<p>📎 ${source.source}</p>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    document.getElementById('answerBox').innerHTML = html;
+                } else if (data.error) {
+                    statusDiv.innerHTML = `<div class="status error">❌ Hata: ${data.error}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Hata: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

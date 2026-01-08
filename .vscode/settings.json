@@ -1,0 +1,8 @@
+{
+    "python-envs.pythonProjects": [],
+    "python.defaultInterpreterPath": "./venv/bin/python",
+    "python.analysis.extraPaths": [
+        "./venv/lib/python3.9/site-packages"
+    ],
+    "python.linting.enabled": false
+}
