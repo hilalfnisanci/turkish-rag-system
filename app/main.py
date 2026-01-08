@@ -1,19 +1,23 @@
-from fastapi import FastAPI
+import os
+import warnings
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from typing import List
+import shutil
 import chromadb
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_openai import ChatOpenAI
-from langchain.chains import RetrievalQA
+from langchain_classic.chains import RetrievalQA
 from app.config import OPENAI_API_KEY
-from fastapi import UploadFile, File
-from typing import List
-import shutil
-import os
 from app.document_processor import DocumentProcessor
+from fastapi.responses import RedirectResponse
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Initialize FastAPI
 app = FastAPI(title="Turkish RAG System")
 
@@ -66,6 +70,11 @@ processor = DocumentProcessor()
 
 # ============ ENDPOINTS ============
 
+@app.get("/")
+async def root():
+    """Redirect to frontend"""
+    return RedirectResponse(url="/static/index.html")
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -78,8 +87,8 @@ async def upload_documents(files: List[UploadFile] = File(...)):
         # 1. clear temporary directory
         temp_dir = "./data/temp"
         if os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir)  # Klasörü sil
-        os.makedirs(temp_dir, exist_ok=True)  # Yeniden oluştur
+            shutil.rmtree(temp_dir)  
+        os.makedirs(temp_dir, exist_ok=True)
         
         # 2. clear CHROMA collection
         try:
