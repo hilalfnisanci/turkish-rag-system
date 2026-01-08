@@ -233,7 +233,7 @@
             }
             
             const statusDiv = document.getElementById('queryStatus');
-            statusDiv.innerHTML = '<div class="status loading"><span class="spinner"></span>Düşünüyorum...</div>';
+            statusDiv.innerHTML = '<div class="status loading"><span class="spinner"></span>Thinking...</div>';
             
             try {
                 const response = await fetch(`${API_URL}/ask?query=${encodeURIComponent(query)}`, {
